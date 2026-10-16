@@ -240,45 +240,28 @@
     th {
       background-color: #1a1a1a;
       color: #FFD700;
-      padding: 18px 20px;
+      padding: 14px 16px;
       text-align: center;
       border-bottom: 2px solid #FFD70055;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 1px;
-      font-size: 0.95rem;
-    }
-
-    th:first-child,
-    td:first-child {
-      text-align: center;
-      width: 70px;
-    }
-
-    th:nth-child(2),
-    td:nth-child(2) {
-      text-align: left;
-    }
-
-    th:nth-child(3),
-    td:nth-child(3),
-    th:nth-child(4),
-    td:nth-child(4),
-    th:nth-child(5),
-    td:nth-child(5),
-    th:nth-child(6),
-    td:nth-child(6) {
-      text-align: center;
+      letter-spacing: 0.5px;
+      font-size: 0.85rem;
     }
 
     td {
-      padding: 16px 20px;
+      padding: 14px 16px;
       border-bottom: 1px solid #222;
       color: #eee;
+      text-align: center;
     }
 
     tr:hover {
       background-color: #1a1a1a;
+    }
+
+    th.col-left, td.col-left {
+      text-align: left;
     }
 
     /* LOGO D'ÉQUIPE */
@@ -309,6 +292,18 @@
       text-transform: uppercase;
     }
 
+    /* PHOTO JOUEUR */
+    .player-photo-img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-right: 12px;
+      border: 2px solid #FFD700;
+      background: #333;
+      vertical-align: middle;
+    }
+
     .player-photo {
       width: 40px;
       height: 40px;
@@ -322,7 +317,7 @@
       font-size: 1rem;
       margin-right: 12px;
       border: 3px solid #FFD700;
-      object-fit: cover;
+      text-transform: uppercase;
     }
 
     /* BADGES */
@@ -556,12 +551,91 @@
     }
 
     .day-teams-table th {
-      padding: 14px 18px;
-      font-size: 0.85rem;
+      padding: 12px 14px;
+      font-size: 0.8rem;
     }
 
     .day-teams-table td {
-      padding: 12px 18px;
+      padding: 12px 14px;
+    }
+
+    /* ========== GRILLE DES QUALIFIÉS (MINI FINAL) ========== */
+    .qualified-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .qualified-team {
+      background: #1a1a1a;
+      border: 3px solid #FFD700;
+      border-radius: 15px;
+      padding: 18px 15px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      transition: 0.2s;
+    }
+
+    .qualified-team:hover {
+      background: #222;
+      transform: scale(1.03);
+    }
+
+    .qualified-team .qual-logo {
+      width: 55px;
+      height: 55px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #FFD700;
+      background: #FFD700;
+    }
+
+    .qualified-team .qual-logo-fallback {
+      width: 55px;
+      height: 55px;
+      border-radius: 50%;
+      background: #FFD700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #000;
+      font-weight: bold;
+      font-size: 1.1rem;
+      border: 3px solid #FFD700;
+      text-transform: uppercase;
+    }
+
+    .qualified-team .qual-name {
+      color: #FFD700;
+      font-weight: bold;
+      font-size: 0.95rem;
+      letter-spacing: 1px;
+      text-align: center;
+    }
+
+    .qualified-team .qual-rank {
+      background: #FFD700;
+      color: #000;
+      font-weight: bold;
+      font-size: 0.75rem;
+      padding: 2px 10px;
+      border-radius: 10px;
+    }
+
+    .qualified-banner {
+      background: #FFD700;
+      color: #000;
+      padding: 15px 25px;
+      border-radius: 15px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 1.2rem;
+      letter-spacing: 2px;
+      margin-top: 20px;
     }
 
     /* STATS JOUEURS */
@@ -800,7 +874,7 @@
               <thead>
                 <tr>
                   <th>Rang</th>
-                  <th>Équipe</th>
+                  <th class="col-left">Équipe</th>
                   <th>Kills</th>
                   <th>Top</th>
                   <th>Total</th>
@@ -827,10 +901,13 @@
             <table>
               <thead>
                 <tr>
-                  <th>Rang</th>
-                  <th>Joueur</th>
+                  <th class="col-left">Team Name</th>
+                  <th class="col-left">Player Name</th>
                   <th>Kill</th>
+                  <th>Damage</th>
                   <th>Assist</th>
+                  <th>Headshots</th>
+                  <th>Knock Down</th>
                 </tr>
               </thead>
               <tbody id="mvpTable"></tbody>
@@ -885,6 +962,22 @@
 
     const teamNames = [...groups.A, ...groups.B, ...groups.C];
 
+    // ========== 🏆 MINI FINAL WEEK 1 - 12 ÉQUIPES QUALIFIÉES ==========
+    const miniFinalW1Teams = [
+      "BAZ ESPORT",
+      "SUPER STARS",
+      "JOKO FORCE",
+      "FURY ESPORTS",
+      "ALPHA TEAM",
+      "CLEAR VISION",
+      "VOLCANOS",
+      "NEYA ESPORT",
+      "AMATERAS",
+      "IMPELDOWN",
+      "STARS DZ",
+      "AL AHLI ESP"
+    ];
+
     const teamStats = {};
     teamNames.forEach(name => {
       teamStats[name] = { kills: 0, top: 0, total: 0, booyah: 0 };
@@ -933,6 +1026,7 @@
       return bestMatch;
     }
 
+    // ========== LOGO ÉQUIPE ==========
     function getTeamLogoHTML(name) {
       const logoFile = teamLogos[name];
       if (logoFile) {
@@ -948,36 +1042,44 @@
       return (words[0][0] + words[1][0]).toUpperCase();
     }
 
+    // ========== PHOTO JOUEUR ==========
+    function getPlayerPhotoHTML(playerName) {
+      if (!playerName || playerName === "En attente..." || playerName === "À REMPLIR") {
+        return `<span class="player-photo">?</span>`;
+      }
+      const photoFile = `${playerName}.png`;
+      const initial = playerName.charAt(0).toUpperCase();
+      
+      return `<img src="${photoFile}" alt="${playerName}" class="player-photo-img" 
+                onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
+              <span class="player-photo" style="display:none;">${initial}</span>`;
+    }
+
     // ========== 📸 TÉLÉCHARGEMENT D'IMAGE ==========
     function downloadImage(elementId, fileName) {
       const element = document.getElementById(elementId);
       if (!element) return;
 
-      // Masquer temporairement les boutons de téléchargement
       const buttons = element.querySelectorAll('.download-btn, .download-btn-small');
       buttons.forEach(btn => btn.style.visibility = 'hidden');
 
-      // Afficher le toast "génération en cours"
       showToast('Génération de l\'image en cours...', 'fa-spinner fa-spin');
 
       html2canvas(element, {
         backgroundColor: '#000000',
-        scale: 3, // Haute qualité (3x)
+        scale: 3,
         useCORS: true,
         allowTaint: true,
         logging: false,
         onclone: (clonedDoc) => {
-          // S'assurer que le fond noir est bien appliqué
           const clonedElement = clonedDoc.getElementById(elementId);
           if (clonedElement) {
             clonedElement.style.backgroundColor = '#000000';
           }
         }
       }).then(canvas => {
-        // Remettre les boutons visibles
         buttons.forEach(btn => btn.style.visibility = 'visible');
 
-        // Créer le lien de téléchargement
         const link = document.createElement('a');
         link.download = `${fileName}-${new Date().toISOString().slice(0,10)}.png`;
         link.href = canvas.toDataURL('image/png');
@@ -1016,7 +1118,7 @@
         if (statusEl) {
           statusEl.className = 'upload-status success';
           statusEl.style.display = 'flex';
-          statusEl.innerHTML = `<i class="fas fa-check-circle"></i> ${file.name} chargé — ${teamNames.filter(n => teamStats[n].total > 0).length} équipes mises à jour`;
+          statusEl.innerHTML = `<i class="fas fa-check-circle"></i> ${file.name} chargé — ${teamNames.filter(n => teamStats[n].total > 0).length} équipes / ${mvpPlayers.length} joueurs`;
         }
 
         renderGlobalTeamsTable();
@@ -1027,32 +1129,63 @@
       reader.readAsText(file, 'UTF-8');
     }
 
+    // ========== PARSER LE CSV ==========
     function parseCSV(csvText) {
       const lines = csvText.trim().split('\n');
+      const seenPlayers = new Set();
       
       lines.forEach((line) => {
-        if (line.includes('Rang') || line.includes('Équipe') || line.includes('Equipe')) return;
-        
+        const lowerLine = line.toLowerCase();
+        if (lowerLine.includes('équipe') || lowerLine.includes('equipe') || 
+            lowerLine.includes('team name') || lowerLine.includes('player name') ||
+            lowerLine.includes('rang')) return;
+
         const parts = line.split(',').map(p => p.trim());
-        if (parts.length < 7) return;
-        
-        const teamNameRaw = parts[2];
-        const kills = parseInt(parts[3]) || 0;
-        const top = parseInt(parts[4]) || 0;
-        const total = parseInt(parts[5]) || 0;
-        const booyah = parseInt(parts[6]) || 0;
 
-        if (!teamNameRaw) return;
+        // Format MVP: TeamName,PlayerName,Kill,Damage,Assist,Headshots,KnockDown
+        if (parts.length >= 7) {
+          const teamNameRaw = parts[0];
+          const playerName = parts[1];
+          const kills = parseInt(parts[2]) || 0;
+          const damage = parseInt(parts[3]) || 0;
+          const assists = parseInt(parts[4]) || 0;
+          const headshots = parseInt(parts[5]) || 0;
+          const knockDown = parseInt(parts[6]) || 0;
 
-        const teamName = findBestMatch(teamNameRaw);
+          if (!teamNameRaw || !playerName) return;
+          const teamName = findBestMatch(teamNameRaw);
 
-        if (teamName && teamStats[teamName]) {
-          teamStats[teamName].kills += kills;
-          teamStats[teamName].top += top;
-          teamStats[teamName].total += total;
-          teamStats[teamName].booyah += booyah;
+          if (teamName) {
+            const key = `${playerName}-${teamName}`;
+            if (seenPlayers.has(key)) return;
+            seenPlayers.add(key);
+
+            mvpPlayers.push({
+              team: teamName, name: playerName, kills: kills, damage: damage,
+              assists: assists, headshots: headshots, knockDown: knockDown
+            });
+          } else {
+            // Format TEAM avec virgule initiale
+            const teamName2Raw = parts[2];
+            const kills2 = parseInt(parts[3]) || 0;
+            const top2 = parseInt(parts[4]) || 0;
+            const total2 = parseInt(parts[5]) || 0;
+            const booyah2 = parseInt(parts[6]) || 0;
+            
+            if (teamName2Raw) {
+              const teamName2 = findBestMatch(teamName2Raw);
+              if (teamName2 && teamStats[teamName2]) {
+                teamStats[teamName2].kills += kills2;
+                teamStats[teamName2].top += top2;
+                teamStats[teamName2].total += total2;
+                teamStats[teamName2].booyah += booyah2;
+              }
+            }
+          }
         }
       });
+
+      mvpPlayers.sort((a, b) => b.kills - a.kills);
     }
 
     // ========== RENDU TABLEAU GLOBAL ==========
@@ -1066,7 +1199,7 @@
         const row = document.createElement('tr');
         row.innerHTML = `
           <td>${index + 1}</td>
-          <td>${getTeamLogoHTML(name)} ${name}</td>
+          <td class="col-left">${getTeamLogoHTML(name)} ${name}</td>
           <td><span class="badge-kill">${stats.kills}</span></td>
           <td>${stats.top}</td>
           <td><strong>${stats.total}</strong></td>
@@ -1076,23 +1209,28 @@
       });
     }
 
+    // ========== RENDU MVP ==========
     function renderMVPTable() {
       const mvpTable = document.getElementById('mvpTable');
       mvpTable.innerHTML = '';
-      const displayList = mvpPlayers.length > 0 ? mvpPlayers : [
-        { rank: 1, name: "En attente...", team: "", kills: 0, assists: 0 }
-      ];
-      displayList.slice(0, 10).forEach(player => {
+      
+      if (mvpPlayers.length === 0) {
         const row = document.createElement('tr');
-        const photoInitial = player.name.charAt(0).toUpperCase();
+        row.innerHTML = `<td colspan="7" style="text-align:center; padding:30px; color:#666;">Aucun joueur chargé. Importez un CSV avec les stats MVP.</td>`;
+        mvpTable.appendChild(row);
+        return;
+      }
+
+      mvpPlayers.slice(0, 20).forEach(player => {
+        const row = document.createElement('tr');
         row.innerHTML = `
-          <td>${player.rank}</td>
-          <td>
-            <span class="player-photo">${photoInitial}</span>
-            ${player.name} ${player.team ? `<small style="color:#aaa;">(${player.team})</small>` : ''}
-          </td>
+          <td class="col-left">${getTeamLogoHTML(player.team)} ${player.team}</td>
+          <td class="col-left">${getPlayerPhotoHTML(player.name)} ${player.name}</td>
           <td><span class="badge-kill">${player.kills}</span></td>
+          <td>${player.damage.toLocaleString()}</td>
           <td>${player.assists}</td>
+          <td>${player.headshots}</td>
+          <td>${player.knockDown}</td>
         `;
         mvpTable.appendChild(row);
       });
@@ -1109,7 +1247,7 @@
           { id: "D1", match: "A X B", groups: ["A", "B"], csv: "W1-D1-AXB.csv" },
           { id: "D2", match: "B X C", groups: ["B", "C"], csv: "W1-D2-BXC.csv" },
           { id: "D3", match: "A X C", groups: ["A", "C"], csv: "W1-D3-AXC.csv" },
-          { id: "D4", match: "MINI FINAL", groups: [], desc: "BEST 12 TEAMS QUALIFY TO SMALL FINAL 50$", isMiniFinal: true }
+          { id: "D4", match: "MINI FINAL", groups: [], desc: "BEST 12 TEAMS QUALIFY TO SMALL FINAL 50$", isMiniFinal: true, qualifiedTeams: miniFinalW1Teams }
         ]
       },
       "W2": {
@@ -1215,15 +1353,17 @@
           </div>`;
       }
 
+      // Upload CSV (pour les jours normaux ET mini-final)
       let uploadHTML = '';
-      if (!isSpecial && !isMiniFinal) {
+      if (!isSpecial) {
+        const csvName = isMiniFinal ? `W1-${currentDay}-MINIFINAL.csv` : (currentDayData.csv || 'fichier.csv');
         uploadHTML = `
           <div class="upload-zone">
             <div class="upload-info">
               <i class="fas fa-file-csv"></i>
               <div class="upload-text">
                 <strong>Charger le fichier CSV</strong>
-                <span>Clique sur le bouton pour choisir ${currentDayData.csv || 'le fichier'}</span>
+                <span>Clique sur le bouton pour choisir ${csvName}</span>
               </div>
             </div>
             <label class="upload-btn">
@@ -1235,6 +1375,46 @@
         `;
       }
 
+      // Grille des qualifiés pour la MINI FINAL
+      let qualifiedHTML = '';
+      if (isMiniFinal && currentDayData.qualifiedTeams && currentDayData.qualifiedTeams.length > 0) {
+        qualifiedHTML = `
+          <div class="day-teams-table" id="qualifiedCard" style="margin-top:20px;">
+            <div class="table-title">
+              <div class="title-left">
+                <i class="fas fa-medal"></i>
+                <span>TEAMS QUALIFIED (${currentDayData.qualifiedTeams.length})</span>
+              </div>
+              <button class="download-btn-small" onclick="downloadImage('qualifiedCard', 'SLS10-${currentWeek}-${currentDay}-Qualified')">
+                <i class="fas fa-download"></i> Télécharger
+              </button>
+            </div>
+            <div style="padding: 25px;">
+              <div class="qualified-grid">
+                ${currentDayData.qualifiedTeams.map((name, i) => {
+                  const logoFile = teamLogos[name];
+                  return `
+                    <div class="qualified-team">
+                      <div class="qual-rank">#${i + 1}</div>
+                      ${logoFile 
+                        ? `<img src="${logoFile}" alt="${name}" class="qual-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                           <div class="qual-logo-fallback" style="display:none;">${getInitials(name)}</div>`
+                        : `<div class="qual-logo-fallback">${getInitials(name)}</div>`
+                      }
+                      <div class="qual-name">${name}</div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          </div>
+          <div class="qualified-banner">
+            <i class="fas fa-trophy"></i> BEST 12 TEAMS QUALIFY TO SMALL FINAL 50$
+          </div>
+        `;
+      }
+
+      // Tableau des équipes participantes (pour les jours normaux)
       let teamsTableHTML = '';
       if (!isSpecial && !isMiniFinal && currentDayData.groups.length > 0) {
         const participatingTeams = [];
@@ -1255,14 +1435,14 @@
             <div style="overflow-x: auto;">
               <table>
                 <thead>
-                  <tr><th>#</th><th>Équipe</th><th>Kills</th><th>Top</th><th>Total</th><th>Booyah</th></tr>
+                  <tr><th>#</th><th class="col-left">Équipe</th><th>Kills</th><th>Top</th><th>Total</th><th>Booyah</th></tr>
                 </thead>
                 <tbody>
                   ${participatingTeams.map((name, i) => {
                     const stats = teamStats[name];
                     return `<tr>
                       <td>${i + 1}</td>
-                      <td>${getTeamLogoHTML(name)} ${name}</td>
+                      <td class="col-left">${getTeamLogoHTML(name)} ${name}</td>
                       <td><span class="badge-kill">${stats.kills}</span></td>
                       <td>${stats.top}</td>
                       <td><strong>${stats.total}</strong></td>
@@ -1290,6 +1470,7 @@
           <div class="day-selector">${dayButtonsHTML}</div>
           ${dayDisplayHTML}
           ${uploadHTML}
+          ${qualifiedHTML}
           ${teamsTableHTML}
         </div>`;
     }
@@ -1311,7 +1492,7 @@
         teamsTableHTML += `
           <tr>
             <td>${index + 1}</td>
-            <td>${getTeamLogoHTML(name)} ${name}</td>
+            <td class="col-left">${getTeamLogoHTML(name)} ${name}</td>
             <td><span class="badge-kill">${stats.kills}</span></td>
             <td>${stats.top}</td>
             <td><strong>${stats.total}</strong></td>
@@ -1344,7 +1525,7 @@
             <div style="overflow-x: auto;">
               <table>
                 <thead>
-                  <tr><th>#</th><th>Équipe</th><th>Kills</th><th>Top</th><th>Total</th><th>Booyah</th></tr>
+                  <tr><th>#</th><th class="col-left">Équipe</th><th>Kills</th><th>Top</th><th>Total</th><th>Booyah</th></tr>
                 </thead>
                 <tbody>${teamsTableHTML}</tbody>
               </table>
@@ -1392,7 +1573,7 @@
           statsHTML += `
             <div class="stat-item">
               <div class="label">
-                <span class="player-photo">${stat.photo}</span>
+                ${getPlayerPhotoHTML(stat.name)}
                 <span>${stat.name} ${stat.team ? `<small style="color:#aaa;">(${stat.team})</small>` : ''}</span>
               </div>
               <div class="value">
