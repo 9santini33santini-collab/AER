@@ -978,6 +978,12 @@
       "AL AHLI ESP"
     ];
 
+    // ========== 🏆 MINI FINAL WEEK 1 - RÉSULTATS (par défaut à 0, sera rempli par CSV) ==========
+    const miniFinalW1Results = {};
+    miniFinalW1Teams.forEach(name => {
+      miniFinalW1Results[name] = { kills: 0, top: 0, total: 0, booyah: 0 };
+    });
+
     const teamStats = {};
     teamNames.forEach(name => {
       teamStats[name] = { kills: 0, top: 0, total: 0, booyah: 0 };
@@ -1111,25 +1117,35 @@
       reader.onload = function(e) {
         const csvText = e.target.result;
         
-        resetStats();
-        parseCSV(csvText);
+        // Si c'est une mini-finale, on ne reset pas les stats globales
+        // On met à jour les résultats de la mini-finale uniquement
+        const isMiniFinal = currentDay === 'D4' || currentDay === 'D8' || currentDay === 'D12' || currentDay === 'D16';
+        
+        if (isMiniFinal) {
+          parseMiniFinalCSV(csvText);
+        } else {
+          resetStats();
+          parseCSV(csvText);
+        }
 
         const statusEl = document.getElementById('uploadStatus');
         if (statusEl) {
           statusEl.className = 'upload-status success';
           statusEl.style.display = 'flex';
-          statusEl.innerHTML = `<i class="fas fa-check-circle"></i> ${file.name} chargé — ${teamNames.filter(n => teamStats[n].total > 0).length} équipes / ${mvpPlayers.length} joueurs`;
+          statusEl.innerHTML = `<i class="fas fa-check-circle"></i> ${file.name} chargé avec succès`;
         }
 
-        renderGlobalTeamsTable();
-        renderMVPTable();
+        if (!isMiniFinal) {
+          renderGlobalTeamsTable();
+          renderMVPTable();
+        }
         if (currentView === 'day') renderDaySection();
         else if (currentView === 'stats') renderStatsSection();
       };
       reader.readAsText(file, 'UTF-8');
     }
 
-    // ========== PARSER LE CSV ==========
+    // ========== PARSER LE CSV (jours normaux) ==========
     function parseCSV(csvText) {
       const lines = csvText.trim().split('\n');
       const seenPlayers = new Set();
@@ -1142,7 +1158,6 @@
 
         const parts = line.split(',').map(p => p.trim());
 
-        // Format MVP: TeamName,PlayerName,Kill,Damage,Assist,Headshots,KnockDown
         if (parts.length >= 7) {
           const teamNameRaw = parts[0];
           const playerName = parts[1];
@@ -1165,7 +1180,6 @@
               assists: assists, headshots: headshots, knockDown: knockDown
             });
           } else {
-            // Format TEAM avec virgule initiale
             const teamName2Raw = parts[2];
             const kills2 = parseInt(parts[3]) || 0;
             const top2 = parseInt(parts[4]) || 0;
@@ -1186,6 +1200,48 @@
       });
 
       mvpPlayers.sort((a, b) => b.kills - a.kills);
+    }
+
+    // ========== PARSER LE CSV (MINI FINAL) ==========
+    // Format : TeamName,Kills,Top,Total,Booyah  OU  ,Rang,Équipe,Kills,Top,Total,Booyah
+    function parseMiniFinalCSV(csvText) {
+      const lines = csvText.trim().split('\n');
+      
+      lines.forEach((line) => {
+        const lowerLine = line.toLowerCase();
+        if (lowerLine.includes('équipe') || lowerLine.includes('equipe') || 
+            lowerLine.includes('rang') || lowerLine.includes('team name')) return;
+
+        const parts = line.split(',').map(p => p.trim());
+        
+        let teamNameRaw, kills, top, total, booyah;
+
+        // Format avec virgule initiale : ,Rang,Équipe,Kills,Top,Total,Booyah
+        if (parts.length >= 7 && parts[0] === '') {
+          teamNameRaw = parts[2];
+          kills = parseInt(parts[3]) || 0;
+          top = parseInt(parts[4]) || 0;
+          total = parseInt(parts[5]) || 0;
+          booyah = parseInt(parts[6]) || 0;
+        } 
+        // Format simple : TeamName,Kills,Top,Total,Booyah
+        else if (parts.length >= 5) {
+          teamNameRaw = parts[0];
+          kills = parseInt(parts[1]) || 0;
+          top = parseInt(parts[2]) || 0;
+          total = parseInt(parts[3]) || 0;
+          booyah = parseInt(parts[4]) || 0;
+        } else {
+          return;
+        }
+
+        if (!teamNameRaw) return;
+        const teamName = findBestMatch(teamNameRaw);
+        
+        if (teamName && miniFinalW1Results[teamName]) {
+          miniFinalW1Results[teamName] = { kills, top, total, booyah };
+        }
+      });
     }
 
     // ========== RENDU TABLEAU GLOBAL ==========
@@ -1247,7 +1303,7 @@
           { id: "D1", match: "A X B", groups: ["A", "B"], csv: "W1-D1-AXB.csv" },
           { id: "D2", match: "B X C", groups: ["B", "C"], csv: "W1-D2-BXC.csv" },
           { id: "D3", match: "A X C", groups: ["A", "C"], csv: "W1-D3-AXC.csv" },
-          { id: "D4", match: "MINI FINAL", groups: [], desc: "BEST 12 TEAMS QUALIFY TO SMALL FINAL 50$", isMiniFinal: true, qualifiedTeams: miniFinalW1Teams }
+          { id: "D4", match: "MINI FINAL", groups: [], desc: "BEST 12 TEAMS QUALIFY TO SMALL FINAL 50$", isMiniFinal: true, qualifiedTeams: miniFinalW1Teams, results: miniFinalW1Results }
         ]
       },
       "W2": {
@@ -1353,7 +1409,7 @@
           </div>`;
       }
 
-      // Upload CSV (pour les jours normaux ET mini-final)
+      // Upload CSV
       let uploadHTML = '';
       if (!isSpecial) {
         const csvName = isMiniFinal ? `W1-${currentDay}-MINIFINAL.csv` : (currentDayData.csv || 'fichier.csv');
@@ -1414,9 +1470,53 @@
         `;
       }
 
-      // Tableau des équipes participantes (pour les jours normaux)
+      // Tableau des résultats de la MINI FINAL (ou des équipes participantes pour les jours normaux)
       let teamsTableHTML = '';
-      if (!isSpecial && !isMiniFinal && currentDayData.groups.length > 0) {
+      
+      if (isMiniFinal && currentDayData.qualifiedTeams && currentDayData.qualifiedTeams.length > 0) {
+        // Tableau des résultats de la MINI FINAL
+        const results = currentDayData.results || {};
+        const teamsWithResults = currentDayData.qualifiedTeams.map(name => ({
+          name,
+          ...(results[name] || { kills: 0, top: 0, total: 0, booyah: 0 })
+        }));
+        
+        // Trier par total décroissant
+        teamsWithResults.sort((a, b) => b.total - a.total);
+
+        teamsTableHTML = `
+          <div class="day-teams-table" id="dayTableCard" style="margin-top:20px;">
+            <div class="table-title">
+              <div class="title-left">
+                <i class="fas fa-list-ol"></i>
+                <span>MINI FINAL — RESULTS (${teamsWithResults.length})</span>
+              </div>
+              <button class="download-btn-small" onclick="downloadImage('dayTableCard', 'SLS10-${currentWeek}-${currentDay}-Results')">
+                <i class="fas fa-download"></i> Télécharger
+              </button>
+            </div>
+            <div style="overflow-x: auto;">
+              <table>
+                <thead>
+                  <tr><th>Rang</th><th class="col-left">Équipe</th><th>Kills</th><th>Top</th><th>Total</th><th>Booyah</th></tr>
+                </thead>
+                <tbody>
+                  ${teamsWithResults.map((team, i) => {
+                    return `<tr>
+                      <td>${i + 1}</td>
+                      <td class="col-left">${getTeamLogoHTML(team.name)} ${team.name}</td>
+                      <td><span class="badge-kill">${team.kills}</span></td>
+                      <td>${team.top}</td>
+                      <td><strong>${team.total}</strong></td>
+                      <td>${team.booyah > 0 ? `<span class="badge-booyah">${team.booyah}</span>` : '0'}</td>
+                    </tr>`;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>`;
+      } else if (!isSpecial && !isMiniFinal && currentDayData.groups.length > 0) {
+        // Tableau des équipes participantes pour les jours normaux
         const participatingTeams = [];
         currentDayData.groups.forEach(g => groups[g].forEach(name => participatingTeams.push(name)));
         participatingTeams.sort((a, b) => teamStats[b].total - teamStats[a].total);
@@ -1542,7 +1642,11 @@
 
     function changeDay(day) {
       currentDay = day;
-      resetStats();
+      // Ne pas reset les stats si on va sur une mini-finale
+      const dayData = weeksData[currentWeek].days.find(d => d.id === day);
+      if (!dayData.isMiniFinal && !dayData.special) {
+        resetStats();
+      }
       renderDaySection();
     }
 
